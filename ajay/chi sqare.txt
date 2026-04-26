@@ -1,0 +1,36 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.feature_selection import chi2
+from sklearn.preprocessing import LabelEncoder
+
+# Load CSV file
+df = pd.read_csv("/content/Mix.csv")
+
+# Convert categorical data to numeric
+le = LabelEncoder()
+for column in df.columns:
+    df[column] = le.fit_transform(df[column])
+
+# Features and Target
+X = df.iloc[:, :-1]
+y = df.iloc[:, -1]
+
+# Chi-Square Test
+chi_scores = chi2(X, y)
+
+# Create Result DataFrame
+result = pd.DataFrame({
+    'Feature': X.columns,
+    'Chi-Square Value': chi_scores[0],
+    'p-value': chi_scores[1]
+})
+
+print(result)
+
+# Plot Bar Graph
+plt.figure()
+plt.bar(result['Feature'], result['Chi-Square Value'])
+plt.xlabel("Features")
+plt.ylabel("Chi-Square Value (Correlation)")
+plt.title("Chi-Square Feature Correlation")
+plt.show()

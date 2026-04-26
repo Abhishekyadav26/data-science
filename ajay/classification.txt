@@ -1,0 +1,74 @@
+# ==============================
+# IMPORT LIBRARIES
+# ==============================
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.cluster import KMeans
+from sklearn.metrics import accuracy_score, classification_report, mean_squared_error
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.decomposition import PCA
+df = pd.read_csv("/content/HS.csv")
+
+print("Dataset Preview:")
+print(df.head())
+
+
+df = df.drop(columns=["Heart Sound ID"])
+
+X = df.drop(columns=["Heart Sound Type"])
+y = df["Heart Sound Type"]
+
+le_X = LabelEncoder()
+for col in X.columns:
+    X[col] = le_X.fit_transform(X[col])
+
+le_y = LabelEncoder()
+y = le_y.fit_transform(y)
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+#  CLUSTERING
+
+kmeans = KMeans(n_clusters=3, random_state=42)
+clusters = kmeans.fit_predict(X_scaled)
+
+print("\nClustering Done!")
+
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
+
+plt.scatter(X_pca[:, 0], X_pca[:, 1], c=clusters, cmap='viridis')
+plt.title("Clustering Result")
+plt.show()
+#  CLASSIFICATION
+X_train, X_test, y_train, y_test = train_test_split(
+    X_scaled, y, test_size=0.2, random_state=42
+)
+
+clf = RandomForestClassifier(n_estimators=100)
+clf.fit(X_train, y_train)
+
+y_pred = clf.predict(X_test)
+
+print("\nClassification Result:")
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print(classification_report(y_test, y_pred, zero_division=1))
+# REGRESSION
+
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X_scaled, y.astype(float), test_size=0.2, random_state=42
+)
+
+reg = RandomForestRegressor(n_estimators=100)
+reg.fit(X_train, y_train)
+
+y_pred = reg.predict(X_test)
+
+print("\nRegression Result:")
+print("MSE:", mean_squared_error(y_test, y_pred))
+

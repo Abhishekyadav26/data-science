@@ -1,0 +1,84 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+
+# Load dataset
+df = pd.read_csv("/content/dataset.csv")
+
+# Display first few rows
+print(df.head())
+
+# -------------------------------
+# 1️⃣ Heatmap (Correlation Matrix)
+# -------------------------------
+plt.figure()
+numeric_df = df.select_dtypes(include=np.number)
+sns.heatmap(numeric_df.corr(), annot=True)
+plt.title("Correlation Heatmap")
+plt.show()
+
+
+# -------------------------------
+# 2️⃣ Bar Chart (Obesity Level Count)
+# -------------------------------
+plt.figure()
+df['NObeyesdad'].value_counts().plot(kind='bar')
+plt.title("Obesity Level Distribution")
+plt.xlabel("Obesity Level")
+plt.ylabel("Count")
+plt.xticks(rotation=45)
+plt.show()
+
+
+# -------------------------------
+# 3️⃣ Pie Chart (Gender Distribution)
+# -------------------------------
+plt.figure()
+df['Gender'].value_counts().plot(kind='pie', autopct='%1.1f%%')
+plt.title("Gender Distribution")
+plt.ylabel("")
+plt.show()
+
+
+# -------------------------------
+# 4️⃣ Scatter Plot (Height vs Weight)
+# -------------------------------
+plt.figure()
+plt.scatter(df['Height'], df['Weight'])
+plt.xlabel("Height")
+plt.ylabel("Weight")
+plt.title("Height vs Weight")
+plt.show()
+
+
+# -------------------------------
+# 5️⃣ Trendline (Linear Regression on Height vs Weight)
+# -------------------------------
+plt.figure()
+plt.scatter(df['Height'], df['Weight'])
+
+# Linear regression
+slope, intercept, r_value, p_value, std_err = stats.linregress(df['Height'], df['Weight'])
+line = slope * df['Height'] + intercept
+plt.plot(df['Height'], line)
+
+plt.xlabel("Height")
+plt.ylabel("Weight")
+plt.title("Trendline (Height vs Weight)")
+plt.show()
+
+print("R-squared:", r_value**2)
+
+
+# -------------------------------
+# 6️⃣ Interquartile Range (IQR) for Weight
+# -------------------------------
+Q1 = df['Weight'].quantile(0.25)
+Q3 = df['Weight'].quantile(0.75)
+IQR = Q3 - Q1
+
+print("Q1:", Q1)
+print("Q3:", Q3)
+print("IQR:", IQR)

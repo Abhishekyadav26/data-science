@@ -1,0 +1,81 @@
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+
+# Load dataset
+df = pd.read_csv("/content/Cust_Segmentation.csv.csv")
+
+# Impute missing values
+from sklearn.impute import SimpleImputer
+
+imputer = SimpleImputer(strategy="most_frequent")
+df["Defaulted"] = imputer.fit_transform(df[["Defaulted"]])[:, 0]
+
+# Select features
+X = df[
+    [
+        "Age",
+        "Edu",
+        "Years Employed",
+        "Income",
+        "Card Debt",
+        "Other Debt",
+        "Defaulted",
+        "DebtIncomeRatio",
+    ]
+]
+
+# Scale features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+
+# Manhattan distance function
+def manhattan_distance(a, b):
+    return np.sum(np.abs(a - b))
+
+
+# Custom k-means algorithm
+def kmeans_manhattan(X, k, max_iters=100, tol=1e-4):
+    # Initialize centroids randomly
+    np.random.seed(42)
+    centroids = X[np.random.choice(X.shape[0], k, replace=False)]
+
+    for _ in range(max_iters):
+        # Assign clusters
+        distances = np.array([[manhattan_distance(x, c) for c in centroids] for x in X])
+        labels = np.argmin(distances, axis=1)
+
+        # Update centroids
+        new_centroids = np.array([np.median(X[labels == i], axis=0) for i in range(k)])
+
+        # Check for convergence
+        if np.all(np.abs(new_centroids - centroids) < tol):
+            break
+        centroids = new_centroids
+
+    return labels, centroids
+
+
+# Apply custom k-means
+k = 4
+labels_manhattan, centroids_manhattan = kmeans_manhattan(X_scaled, k)
+
+# Dimensionality reduction for visualization
+pca = PCA(n_components=3)
+X_pca = pca.fit_transform(X_scaled)
+
+# Plotting
+fig = plt.figure(figsize=(10, 7))
+ax = fig.add_subplot(111, projection="3d")
+scatter = ax.scatter(
+    X_pca[:, 0], X_pca[:, 1], X_pca[:, 2], c=labels_manhattan, cmap="viridis"
+)
+ax.set_title("K-Means Clustering with Manhattan Distance")
+ax.set_xlabel("PCA Component 1")
+ax.set_ylabel("PCA Component 2")
+ax.set_zlabel("PCA Component 3")
+fig.colorbar(scatter)
+plt.show()

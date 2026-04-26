@@ -1,0 +1,102 @@
+# Install once
+# pip install pandas scikit-learn imbalanced-learn
+
+import pandas as pd
+
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
+
+from imblearn.over_sampling import SMOTE
+
+# -----------------------------
+# STEP 1: LOAD DATASET
+# -----------------------------
+data = pd.read_csv("/content/fraud_dataset.csv")
+
+# Features & Target
+X = data.drop("Class", axis=1)
+y = data["Class"]
+
+# -----------------------------
+# STEP 2: CLASS DISTRIBUTION
+# -----------------------------
+print("\nOriginal Class Distribution:")
+print(y.value_counts())
+
+# -----------------------------
+# STEP 3: TRAIN-TEST SPLIT
+# -----------------------------
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+# -----------------------------
+# STEP 4: TRAIN MODELS (IMBALANCED DATA)
+# -----------------------------
+dt = DecisionTreeClassifier(random_state=42)
+rf = RandomForestClassifier(random_state=42)
+
+dt.fit(X_train, y_train)
+rf.fit(X_train, y_train)
+
+# Predictions
+y_pred_dt = dt.predict(X_test)
+y_pred_rf = rf.predict(X_test)
+
+print("\n===== BEFORE SMOTE =====")
+
+print("\nDecision Tree:")
+print(classification_report(y_test, y_pred_dt))
+
+print("\nRandom Forest:")
+print(classification_report(y_test, y_pred_rf))
+
+# -----------------------------
+# STEP 5: APPLY SMOTE
+# -----------------------------
+smote = SMOTE(random_state=42)
+
+X_train_sm, y_train_sm = smote.fit_resample(X_train, y_train)
+
+print("\nAfter SMOTE Class Distribution:")
+print(pd.Series(y_train_sm).value_counts())
+
+# -----------------------------
+# STEP 6: RETRAIN MODELS
+# -----------------------------
+dt_sm = DecisionTreeClassifier(random_state=42)
+rf_sm = RandomForestClassifier(random_state=42)
+
+dt_sm.fit(X_train_sm, y_train_sm)
+rf_sm.fit(X_train_sm, y_train_sm)
+
+# Predictions after SMOTE
+y_pred_dt_sm = dt_sm.predict(X_test)
+y_pred_rf_sm = rf_sm.predict(X_test)
+
+print("\n===== AFTER SMOTE =====")
+
+print("\nDecision Tree:")
+print(classification_report(y_test, y_pred_dt_sm))
+
+print("\nRandom Forest:")
+print(classification_report(y_test, y_pred_rf_sm))
+
+# Before SMOTE
+plt.figure()
+y.value_counts().plot(kind='bar')
+plt.title("Class Distribution BEFORE SMOTE")
+plt.xlabel("Class (0 = Legit, 1 = Fraud)")
+plt.ylabel("Count")
+plt.show()
+
+# After SMOTE
+plt.figure()
+pd.Series(y_train_sm).value_counts().plot(kind='bar')
+plt.title("Class Distribution AFTER SMOTE")
+plt.xlabel("Class (0 = Legit, 1 = Fraud)")
+plt.ylabel("Count")
+plt.show()

@@ -1,0 +1,98 @@
+
+
+
+# =====================================================
+
+# Data Analysis Program (Mean / Median / Mode, Correlation)
+
+# =====================================================
+
+
+
+import pandas as pd
+
+import numpy as np
+
+import matplotlib.pyplot as plt
+
+import seaborn as sns
+
+
+# (a) Read the dataset & print first 20 rows
+
+df = pd.read_csv("heart.csv")
+
+print("First 20 rows of the dataset:\n")
+
+print(df.head(20))
+
+
+# (b) Calculate Mean / Median / Mode and
+
+# replace missing value
+
+# INTENTIONALLY create a missing value (for demonstration)
+
+df.loc[2, 'chol'] = np.nan
+
+
+
+print("\nMissing values before handling:\n")
+
+print(df.isnull().sum())
+
+
+
+#  Calculate Mean, Median, Mode of 'chol' 
+
+chol_mean = df['chol'].mean()
+
+chol_median = df['chol'].median()
+
+chol_mode = df['chol'].mode()[0]
+
+
+
+print("\nStatistical measures of 'chol' column:")
+
+print("Mean :", chol_mean)
+
+print("Median :", chol_median)
+
+print("Mode :", chol_mode)
+
+
+
+#  Replace missing value using MEAN 
+
+df['chol'].fillna(chol_mean, inplace=True)
+
+
+
+print("\nMissing values after handling:\n")
+
+print(df.isnull().sum())
+
+
+# (c) Correlation between attributes
+
+correlation_matrix = df.corr()
+
+
+
+print("\nCorrelation Matrix:\n")
+
+print(correlation_matrix)
+
+# (d) Display results using heatmap
+
+
+
+plt.figure(figsize=(12, 8))
+
+sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f")
+
+plt.title("Correlation Heatmap of Dataset Attributes")
+
+plt.show()
+
